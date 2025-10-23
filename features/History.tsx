@@ -4,6 +4,7 @@ import { HistoryContext } from '../context/HistoryContext';
 import { HistoryItem } from '../types';
 import FeatureLayout from './common/FeatureLayout';
 import { Button } from './common/Controls';
+import { IconDownload } from '../components/Icons';
 
 const History: React.FC = () => {
     const { historyItems, clearHistory } = useContext(HistoryContext);
@@ -12,6 +13,22 @@ const History: React.FC = () => {
         if (window.confirm('Are you sure you want to clear your entire history? This action cannot be undone.')) {
             clearHistory();
         }
+    };
+
+    const handleDownload = (url: string, filename: string) => {
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleTextDownload = (content: string, filename: string) => {
+        const blob = new Blob([content], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        handleDownload(url, filename);
+        URL.revokeObjectURL(url);
     };
 
     const renderInputs = (item: HistoryItem) => {
@@ -25,13 +42,29 @@ const History: React.FC = () => {
                     </div>
                 );
             }
-            if (key === 'video') {
+            if (key === 'video' || key === 'originalVideo') {
                 return (
                     <div key={key}>
                          <p className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}:</p>
                          <video src={value} controls className="rounded-md mt-1 max-h-32" />
                     </div>
                 )
+            }
+            if (key === 'audio') {
+                return (
+                    <div key={key}>
+                         <p className="font-semibold capitalize text-gray-400">{key.replace(/([A-Z])/g, ' $1')}:</p>
+                         <audio src={value} controls className="rounded-md mt-1 w-full" />
+                    </div>
+                )
+            }
+            if (key === 'linkUrl') {
+                 return (
+                    <div key={key}>
+                        <p className="font-semibold capitalize text-gray-400">Link URL:</p>
+                        <a href={value} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline break-all">{value}</a>
+                    </div>
+                );
             }
             return (
                 <div key={key}>
@@ -43,52 +76,76 @@ const History: React.FC = () => {
     };
 
     const renderOutputs = (item: HistoryItem) => {
-        if (item.outputs.images) {
-            return (
-                 <div className="grid grid-cols-2 gap-2 mt-2">
-                    {item.outputs.images.map((img: string, index: number) => (
-                        <img key={index} src={img} alt={`Generated ${index}`} className="rounded-md w-full" />
-                    ))}
-                </div>
-            );
-        }
-        if (item.outputs.editedImage) {
-            return <img src={item.outputs.editedImage} alt="Edited" className="rounded-md mt-2 w-full" />;
-        }
-        if (item.outputs.video) {
-            return <video src={item.outputs.video} controls loop className="rounded-md mt-2 w-full" />;
-        }
-        if (item.outputs.audio) {
-            return <audio src={item.outputs.audio} controls className="mt-2 w-full" />;
-        }
-        if (item.outputs.translatedText) {
-            return (
-                <div className="text-gray-300 bg-gray-900 p-2 rounded-md whitespace-pre-wrap">
-                    {item.outputs.translatedText}
-                </div>
-            );
-        }
-        if (item.outputs.analysis) {
-            return (
-                <div className="prose prose-invert max-w-none text-gray-300 bg-gray-900 p-2 rounded-md">
-                    <ReactMarkdown>{item.outputs.analysis}</ReactMarkdown>
-                </div>
-            );
-        }
-        if (item.outputs.transcript) {
-            return (
-                <div className="space-y-2">
-                    {item.outputs.transcript.map((entry: any, index: number) => (
-                         <div key={index} className={`flex ${entry.source === 'user' ? 'justify-end' : 'justify-start'}`}>
-                            <div className={`max-w-md px-3 py-1 rounded-lg ${entry.source === 'user' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-200'}`}>
-                                {entry.text}
+        const outputKey = `${item.feature.toLowerCase().replace(/ /g, '-')}-${item.id}`;
+        return (
+            <div>
+                {item.outputs.images && (
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        {item.outputs.images.map((img: string, index: number) => (
+                            <div key={index} className="relative group">
+                                <img src={img} alt={`Generated ${index}`} className="rounded-md w-full" />
+                                <button onClick={() => handleDownload(img, `${outputKey}-image-${index}.jpg`)} className="absolute top-1 right-1 bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-75 transition opacity-0 group-hover:opacity-100"><IconDownload /></button>
                             </div>
+                        ))}
+                    </div>
+                )}
+                {item.outputs.editedImage && (
+                    <div className="relative group mt-2">
+                        <img src={item.outputs.editedImage} alt="Edited" className="rounded-md w-full" />
+                        <button onClick={() => handleDownload(item.outputs.editedImage, `${outputKey}-edited.jpg`)} className="absolute top-1 right-1 bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-75 transition opacity-0 group-hover:opacity-100"><IconDownload /></button>
+                    </div>
+                )}
+                {item.outputs.video && (
+                    <div className="mt-2">
+                        <video src={item.outputs.video} controls loop className="rounded-md w-full" />
+                        <Button onClick={() => handleDownload(item.outputs.video, `${outputKey}.mp4`)} className="mt-2 w-full text-sm py-1"><IconDownload /> Download Video</Button>
+                    </div>
+                )}
+                {item.outputs.editedVideo && (
+                    <div className="mt-2">
+                        <video src={item.outputs.editedVideo} controls loop className="rounded-md w-full" />
+                        <Button onClick={() => handleDownload(item.outputs.editedVideo, `${outputKey}-edited.mp4`)} className="mt-2 w-full text-sm py-1"><IconDownload /> Download Edited Video</Button>
+                    </div>
+                )}
+                {item.outputs.audio && (
+                    <div className="mt-2">
+                        <audio src={item.outputs.audio} controls className="w-full" />
+                        <Button onClick={() => handleDownload(item.outputs.audio, `${outputKey}.wav`)} className="mt-2 w-full text-sm py-1"><IconDownload /> Download Audio</Button>
+                    </div>
+                )}
+                {item.outputs.translatedText && (
+                    <div>
+                        <div className="text-gray-300 bg-gray-900 p-2 rounded-md whitespace-pre-wrap mt-2">{item.outputs.translatedText}</div>
+                        <Button onClick={() => handleTextDownload(item.outputs.translatedText, `${outputKey}-translation.txt`)} className="mt-2 w-full text-sm py-1"><IconDownload /> Download Text</Button>
+                    </div>
+                )}
+                {(item.outputs.analysis || item.outputs.summary) && (
+                    <div>
+                        <div className="prose prose-invert max-w-none text-gray-300 bg-gray-900 p-2 rounded-md mt-2">
+                            <ReactMarkdown>{item.outputs.analysis || item.outputs.summary}</ReactMarkdown>
                         </div>
-                    ))}
-                </div>
-            )
-        }
-        return null;
+                        <Button onClick={() => handleTextDownload(item.outputs.analysis || item.outputs.summary, `${outputKey}-${item.outputs.analysis ? 'analysis' : 'summary'}.txt`)} className="mt-2 w-full text-sm py-1"><IconDownload /> Download Text</Button>
+                    </div>
+                )}
+                {item.outputs.transcript && (
+                     <div>
+                        <div className="space-y-2 mt-2 max-h-48 overflow-y-auto bg-gray-900 p-2 rounded-md">
+                            {item.outputs.transcript.map((entry: any, index: number) => (
+                                <div key={index} className={`flex ${entry.source === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-md px-3 py-1 rounded-lg prose prose-invert ${entry.source === 'user' ? 'bg-blue-700 text-white' : 'bg-gray-600 text-gray-200'}`}>
+                                        <ReactMarkdown>{entry.text}</ReactMarkdown>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                        <Button onClick={() => {
+                            const formatted = item.outputs.transcript.map((e:any) => `${e.source === 'user' ? 'User' : 'Model'}: ${e.text}`).join('\n\n');
+                            handleTextDownload(formatted, `${outputKey}-transcript.txt`);
+                        }} className="mt-2 w-full text-sm py-1"><IconDownload /> Download Transcript</Button>
+                    </div>
+                )}
+            </div>
+        );
     };
 
 

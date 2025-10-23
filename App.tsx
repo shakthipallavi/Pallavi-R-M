@@ -4,13 +4,16 @@ import ImageEditing from './features/ImageEditing';
 import ImageUnderstanding from './features/ImageUnderstanding';
 import VideoGeneration from './features/VideoGeneration';
 import VideoUnderstanding from './features/VideoUnderstanding';
+import VideoEditing from './features/VideoEditing';
 import TextToSpeech from './features/TextToSpeech';
+import AudioAnalysis from './features/AudioAnalysis';
 import LiveConversation from './features/LiveConversation';
 import Translation from './features/Translation';
+import FastChat from './features/FastChat';
 import History from './features/History';
-import { IconPhoto, IconMovie, IconVolume, IconMessage, IconEdit, IconBrain, IconHistory, IconTranslate } from './components/Icons';
-
-export type Feature = 'Image Generation' | 'Image Editing' | 'Image Understanding' | 'Video Generation' | 'Video Understanding' | 'Text to Speech' | 'Translation' | 'Live Conversation' | 'History';
+import LinkSummarizer from './features/LinkSummarizer';
+import { IconPhoto, IconMovie, IconVolume, IconMessage, IconEdit, IconBrain, IconHistory, IconTranslate, IconFastChat, IconAudioWave, IconVideoEdit, IconLink } from './components/Icons';
+import { Feature } from './types';
 
 const features: { name: Feature, icon: React.ReactElement }[] = [
     { name: 'Image Generation', icon: <IconPhoto /> },
@@ -18,8 +21,12 @@ const features: { name: Feature, icon: React.ReactElement }[] = [
     { name: 'Image Understanding', icon: <IconBrain /> },
     { name: 'Video Generation', icon: <IconMovie /> },
     { name: 'Video Understanding', icon: <IconMovie /> },
+    { name: 'Video Editing', icon: <IconVideoEdit /> },
     { name: 'Text to Speech', icon: <IconVolume /> },
+    { name: 'Audio Analysis', icon: <IconAudioWave /> },
     { name: 'Translation', icon: <IconTranslate /> },
+    { name: 'Link Summarizer', icon: <IconLink /> },
+    { name: 'Fast Chat', icon: <IconFastChat /> },
     { name: 'Live Conversation', icon: <IconMessage /> },
     { name: 'History', icon: <IconHistory /> },
 ];
@@ -34,8 +41,12 @@ const App: React.FC = () => {
             case 'Image Understanding': return <ImageUnderstanding />;
             case 'Video Generation': return <VideoGeneration />;
             case 'Video Understanding': return <VideoUnderstanding />;
+            case 'Video Editing': return <VideoEditing />;
             case 'Text to Speech': return <TextToSpeech />;
+            case 'Audio Analysis': return <AudioAnalysis />;
             case 'Translation': return <Translation />;
+            case 'Link Summarizer': return <LinkSummarizer />;
+            case 'Fast Chat': return <FastChat />;
             case 'Live Conversation': return <LiveConversation />;
             case 'History': return <History />;
             default: return <ImageGeneration />;

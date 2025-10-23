@@ -1,10 +1,12 @@
 import React, { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob as GenAIBlob } from '@google/genai';
+import ReactMarkdown from 'react-markdown';
 import { decode, encode, decodeAudioData } from '../utils/audioUtils';
 import FeatureLayout from './common/FeatureLayout';
 import { Button } from './common/Controls';
 import { IconMicrophone } from '../components/Icons';
 import { HistoryContext } from '../context/HistoryContext';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 interface TranscriptionEntry {
     source: 'user' | 'model';
@@ -138,7 +140,7 @@ const LiveConversation: React.FC = () => {
                     },
                     onerror: (e: ErrorEvent) => {
                         console.error('Session error:', e);
-                        setError(`Session error: ${e.message}`);
+                        setError(getFriendlyErrorMessage({ message: `Session error: ${e.message}` }));
                         stopSession(false);
                     },
                     onclose: () => {
@@ -157,7 +159,7 @@ const LiveConversation: React.FC = () => {
 
             sessionRef.current = await sessionPromise;
         } catch (err: any) {
-            setError(err.message || 'Failed to start microphone or session.');
+            setError(getFriendlyErrorMessage(err));
             console.error(err);
             stopSession(false);
         }
@@ -185,7 +187,13 @@ const LiveConversation: React.FC = () => {
                     {isSessionActive && <div className="mt-2 text-green-400 animate-pulse">Listening...</div>}
                 </div>
                 
-                {error && <div className="text-red-400 bg-red-900/50 p-3 rounded-md mb-4">{error}</div>}
+                {error && (
+                    <div className="text-red-400 bg-red-900/50 p-3 rounded-md mb-4 prose prose-invert max-w-none prose-p:my-0">
+                        <ReactMarkdown components={{ a: ({node, ...props}) => <a {...props} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer" /> }}>
+                            {error}
+                        </ReactMarkdown>
+                    </div>
+                )}
 
                 <div className="flex-grow bg-gray-900/50 rounded-lg p-4 overflow-y-auto space-y-4">
                     {transcriptionHistory.length === 0 && !isSessionActive && (

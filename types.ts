@@ -1,5 +1,4 @@
-import { Feature } from './App';
-
+export type Feature = 'Image Generation' | 'Image Editing' | 'Image Understanding' | 'Video Generation' | 'Video Understanding' | 'Video Editing' | 'Text to Speech' | 'Audio Analysis' | 'Translation' | 'Link Summarizer' | 'Fast Chat' | 'Live Conversation' | 'History';
 export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 export type VideoAspectRatio = "16:9" | "9:16";
 

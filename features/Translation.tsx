@@ -1,9 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { GoogleGenAI } from "@google/genai";
+import ReactMarkdown from 'react-markdown';
 import Spinner from '../components/Spinner';
 import FeatureLayout from './common/FeatureLayout';
 import { Label, TextArea, Select, Button } from './common/Controls';
 import { HistoryContext } from '../context/HistoryContext';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
 
 const languages = ['English', 'Hindi', 'Tamil', 'Telugu', 'Kannada'];
 const sourceLanguages = ['Auto-detect', ...languages];
@@ -59,7 +61,7 @@ const Translation: React.FC = () => {
             });
 
         } catch (e: any) {
-            setError(e.message || 'An error occurred while translating.');
+            setError(getFriendlyErrorMessage(e));
             console.error(e);
         } finally {
             setIsLoading(false);
@@ -109,7 +111,13 @@ const Translation: React.FC = () => {
                         {isLoading ? <><Spinner className="w-5 h-5 mr-2" /> Translating...</> : 'Translate'}
                     </Button>
                 </div>
-                {error && <div className="text-red-400 bg-red-900/50 p-3 rounded-md">{error}</div>}
+                {error && (
+                    <div className="text-red-400 bg-red-900/50 p-3 rounded-md prose prose-invert max-w-none prose-p:my-0">
+                        <ReactMarkdown components={{ a: ({node, ...props}) => <a {...props} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer" /> }}>
+                            {error}
+                        </ReactMarkdown>
+                    </div>
+                )}
             </div>
         </FeatureLayout>
     );

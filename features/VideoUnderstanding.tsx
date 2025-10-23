@@ -1,11 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { GoogleGenAI, Part } from "@google/genai";
-import { extractVideoFrames, fileToBase64 } from '../utils/fileUtils';
+import { extractVideoFrames } from '../utils/fileUtils';
 import Spinner from '../components/Spinner';
 import FeatureLayout from './common/FeatureLayout';
-import { Label, Input, TextArea, Button } from './common/Controls';
+import { Label, TextArea, Button } from './common/Controls';
 import ReactMarkdown from 'react-markdown';
 import { HistoryContext } from '../context/HistoryContext';
+import { getFriendlyErrorMessage } from '../utils/errorHandler';
+import Dropzone from '../components/Dropzone';
+import { IconUpload } from '../components/Icons';
 
 const VideoUnderstanding: React.FC = () => {
     const { addHistoryItem } = useContext(HistoryContext);
@@ -17,8 +20,7 @@ const VideoUnderstanding: React.FC = () => {
     const [loadingText, setLoadingText] = useState('');
     const [error, setError] = useState<string | null>(null);
     
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
+    const handleFileSelect = (file: File) => {
         if (file) {
             setVideoFile(file);
             setVideoUrl(URL.createObjectURL(file));
@@ -73,7 +75,7 @@ const VideoUnderstanding: React.FC = () => {
             });
 
         } catch (e: any) {
-            setError(e.message || 'An error occurred while analyzing the video.');
+            setError(getFriendlyErrorMessage(e));
             console.error(e);
         } finally {
             setIsLoading(false);
@@ -88,8 +90,14 @@ const VideoUnderstanding: React.FC = () => {
         >
             <div className="space-y-6">
                 <div>
-                    <Label htmlFor="video-upload">Upload a Video to Analyze</Label>
-                    <Input id="video-upload" type="file" accept="video/*" onChange={handleFileChange} />
+                    <Label>Upload a Video to Analyze</Label>
+                    <Dropzone onFileSelect={handleFileSelect} accept="video/*">
+                        <div className="flex flex-col items-center justify-center text-gray-400">
+                            <IconUpload />
+                            <p className="mt-2">Drag & drop a video here, or click to select a file</p>
+                            {videoFile && <p className="mt-2 text-sm text-green-400">Selected: {videoFile.name}</p>}
+                        </div>
+                    </Dropzone>
                 </div>
                 {videoUrl && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -113,7 +121,13 @@ const VideoUnderstanding: React.FC = () => {
                     </div>
                 )}
                 {isLoading && <div className="text-blue-300">{loadingText}</div>}
-                {error && <div className="text-red-400 bg-red-900/50 p-3 rounded-md">{error}</div>}
+                {error && (
+                    <div className="text-red-400 bg-red-900/50 p-3 rounded-md prose prose-invert max-w-none prose-p:my-0">
+                        <ReactMarkdown components={{ a: ({node, ...props}) => <a {...props} className="text-blue-400 hover:underline" target="_blank" rel="noopener noreferrer" /> }}>
+                            {error}
+                        </ReactMarkdown>
+                    </div>
+                )}
                 {analysis && (
                     <div className="mt-6 p-4 bg-gray-900/50 rounded-lg">
                         <h3 className="text-lg font-semibold mb-2">Analysis Result</h3>
