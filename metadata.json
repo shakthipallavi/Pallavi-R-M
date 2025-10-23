@@ -1,0 +1,7 @@
+{
+  "name": "Gemini Multi-Modal Showcase",
+  "description": "An advanced web application demonstrating the versatile capabilities of the Gemini API, including image generation and editing, video generation and analysis, real-time audio transcription, text-to-speech, and live voice conversations.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
